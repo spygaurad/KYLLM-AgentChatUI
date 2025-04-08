@@ -2,6 +2,7 @@ import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useStreamContext } from "@/providers/Stream";
 import { AIMessage, Checkpoint, Message } from "@langchain/langgraph-sdk";
 import { getContentString } from "../utils";
+import CircuitsVisVisualizer from './circuit-vis-visualizer'; // Import the visualizer
 import { BranchSwitcher, CommandBar } from "./shared";
 import { MarkdownText } from "../markdown-text";
 import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
@@ -101,13 +102,37 @@ export function AssistantMessage({
   if (isToolResult && hideToolCalls) {
     return null;
   }
-
   return (
     <div className="flex items-start mr-auto gap-2 group">
       {isToolResult ? (
         <ToolResult message={message} />
       ) : (
         <div className="flex flex-col gap-2">
+
+          {message.type === 'ai' &&
+            message.additional_kwargs &&
+            'token' in message.additional_kwargs &&
+            'attention' in message.additional_kwargs &&
+            Array.isArray(message.additional_kwargs.token) &&
+            Array.isArray(message.additional_kwargs.attention) && (
+              // <div className="py-2  -translate-x-35 mx-auto">
+              <div className="py-2 translate-x-5 mx-auto"
+                style={{
+                  maxWidth: "750px", // Adjust as needed
+                  maxHeight: "850px", // Adjust as needed
+                  overflow: "scroll", // Scroll if content exceeds
+                }}
+              >
+
+                <CircuitsVisVisualizer
+                  additionalKwargs={{
+                    token: message.additional_kwargs.token as string[],
+                    attention: message.additional_kwargs.attention as number[],
+                  }}
+                />
+              </div>
+            )}
+
           {contentString.length > 0 && (
             <div className="py-1">
               <MarkdownText>{contentString}</MarkdownText>

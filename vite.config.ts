@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      'circuitsvis': path.resolve(__dirname, 'node_modules/circuitsvis/dist/module/index.js')
     },
   },
 });
