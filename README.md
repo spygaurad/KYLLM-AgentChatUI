@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Agent Chat UI
 
 Agent Chat UI is a Vite + React application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
@@ -47,3 +48,7 @@ Once the app is running (or if using the deployed site), you'll be prompted to e
 - **LangSmith API Key**: (only required for connecting to deployed LangGraph servers) Your LangSmith API key to use when authenticating requests sent to LangGraph servers.
 
 After entering these values, click `Continue`. You'll then be redirected to a chat interface where you can start chatting with your LangGraph server.
+=======
+# KYLLM-AgentChatUI
+Chat UI for KYLLM Project 
+>>>>>>> 70b83b0b656b5d980e7e71b7c8ba0994d8d06e20
