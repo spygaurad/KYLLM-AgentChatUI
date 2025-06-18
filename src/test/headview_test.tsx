@@ -2,7 +2,7 @@
 import HeadView from '../components/thread/messages/bertviz-headview';
 import { useState } from 'react'; // Example state for data
 import {AttentionDataObject} from '../../src/components/thread/messages/bertviz-headview';
-import HeadViewProps from '../../src/components/thread/messages/bertviz-headview';
+// import HeadViewProps from '../../src/components/thread/messages/bertviz-headview';
 
 // --- EXAMPLE DATA ---
 // Replace with your actual data loading/generation
@@ -64,7 +64,9 @@ const exampleAttentionData = [
 
 export function VisualizationPage() {
     // You might fetch this data or have it statically
-    const [attentionData, setAttentionData] = useState(exampleAttentionData);
+    // const [attentionData, setAttentionData] = useState(exampleAttentionData);
+    const [attentionData] = useState(exampleAttentionData);
+
 
     return (
         <div>
@@ -80,6 +82,7 @@ export function VisualizationPage() {
 }
 
 
+
 // import { tokens as ColoredTokens } from 'circuitsvis';
 interface BertHeadVisualizerProps {
   additionalKwargs: {
@@ -89,8 +92,10 @@ interface BertHeadVisualizerProps {
 }
 
 const BertHeadVisualizer: React.FC<BertHeadVisualizerProps> = ({ additionalKwargs }) => {
-    const token  = additionalKwargs.token;
-    const bert_attention_dict = additionalKwargs.bert_attention_dict.bert_attention;
+    // const token  = additionalKwargs.token;
+    // const bert_attention_dict = additionalKwargs.bert_attention_dict.bert_attention;
+    const bert_attention_dict = additionalKwargs.bert_attention_dict;
+
     let attentionDataFormatted: AttentionDataObject[];
 
     console.log("Example Attention: ", exampleAttentionData)

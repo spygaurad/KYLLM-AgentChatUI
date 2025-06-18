@@ -15,7 +15,7 @@ import { BooleanParam, useQueryParam } from "use-query-params";
 
 // import HeadView from "./bertviz-headview";
 import BertHeadVisualizer from "../../../test/headview_test";
-import ModelVisualizationPage from "../../../test/modelview_test";
+// import ModelVisualizationPage from "../../../test/modelview_test";
 import {AttentionDataObject} from './bertviz-headview';
 
 import CircuitsVisVisualizer from './circuit-vis-visualizer'; // Import the visualizer

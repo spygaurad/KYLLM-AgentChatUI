@@ -113,8 +113,9 @@ export default function HeadView({
     });
 
     const [hoveredLeftTokenIndex, setHoveredLeftTokenIndex] = useState<number | null>(null);
-    const [hoveredRightTokenIndex, setHoveredRightTokenIndex] = useState<number | null>(null); // Keep track for potential future use
+    // const [hoveredRightTokenIndex, setHoveredRightTokenIndex] = useState<number | null>(null); // Keep track for potential future use
 
+    // const [setHoveredRightTokenIndex] = useState<number | null>(null); // Keep track for potential future use
 
     // --- Effect to reset heads when attention data changes ---
     useEffect(() => {
@@ -168,7 +169,7 @@ export default function HeadView({
     const handleLayerChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedLayerIndex(parseInt(event.target.value, 10));
         setHoveredLeftTokenIndex(null);
-        setHoveredRightTokenIndex(null);
+        // setHoveredRightTokenIndex(null);
     };
 
     const handleAttentionTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -176,7 +177,7 @@ export default function HeadView({
         setSelectedAttentionIndex(newIndex);
         // Layer/Head reset is handled by useEffect
         setHoveredLeftTokenIndex(null);
-        setHoveredRightTokenIndex(null);
+        // setHoveredRightTokenIndex(null);
     };
 
     const handleLeftTokenMouseEnter = useCallback((index: number) => {
@@ -190,10 +191,14 @@ export default function HeadView({
     // Placeholder for potential right token hover
     const handleRightTokenMouseEnter = useCallback((index: number) => {
         // setHoveredRightTokenIndex(index); // Currently unused
+        setHoveredLeftTokenIndex(index);
+
     }, []);
 
     const handleRightTokenMouseLeave = useCallback(() => {
         // setHoveredRightTokenIndex(null); // Currently unused
+        setHoveredLeftTokenIndex(null);
+
     }, []);
 
     const handleHeadClick = useCallback((index: number) => {

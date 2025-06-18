@@ -1,596 +1,596 @@
-import { v4 as uuidv4 } from "uuid";
-import { ReactNode, useEffect, useRef, useState, FormEvent } from "react"; // Added useState here
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { useStreamContext } from "@/providers/Stream";
-import { Button } from "../ui/button";
-import { Checkpoint, Message } from "@langchain/langgraph-sdk";
-import { AssistantMessage, AssistantMessageLoading } from "./messages/ai";
-import { HumanMessage } from "./messages/human";
-import {
-  DO_NOT_RENDER_ID_PREFIX,
-  ensureToolCallsHaveResponses,
-} from "@/lib/ensure-tool-responses";
-import { LangGraphLogoSVG } from "../icons/langgraph";
-import { TooltipIconButton } from "./tooltip-icon-button";
-import {
-  ArrowDown,
-  LoaderCircle,
-  PanelRightOpen,
-  PanelRightClose,
-  SquarePen,
-  ArrowLeft,
-  Wrench,
-  BrainCircuit,
-  ScanText,
-  Search
-} from "lucide-react";
-import { BooleanParam, StringParam, useQueryParam } from "use-query-params";
-import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
-import ThreadHistory from "./history";
-import { toast } from "sonner";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { Label } from "../ui/label";
-import { Switch } from "../ui/switch";
-import { LLMVizTool } from "./tools/llm-visualizer"
+// import { v4 as uuidv4 } from "uuid";
+// import { ReactNode, useEffect, useRef, useState, FormEvent } from "react"; // Added useState here
+// import { motion } from "framer-motion";
+// import { cn } from "@/lib/utils";
+// import { useStreamContext } from "@/providers/Stream";
+// import { Button } from "../ui/button";
+// import { Checkpoint, Message } from "@langchain/langgraph-sdk";
+// import { AssistantMessage, AssistantMessageLoading } from "./messages/ai";
+// import { HumanMessage } from "./messages/human";
+// import {
+//   DO_NOT_RENDER_ID_PREFIX,
+//   ensureToolCallsHaveResponses,
+// } from "@/lib/ensure-tool-responses";
+// import { LangGraphLogoSVG } from "../icons/langgraph";
+// import { TooltipIconButton } from "./tooltip-icon-button";
+// import {
+//   ArrowDown,
+//   LoaderCircle,
+//   PanelRightOpen,
+//   PanelRightClose,
+//   SquarePen,
+//   ArrowLeft,
+//   Wrench,
+//   BrainCircuit,
+//   ScanText,
+//   Search
+// } from "lucide-react";
+// import { BooleanParam, StringParam, useQueryParam } from "use-query-params";
+// import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+// import ThreadHistory from "./history";
+// import { toast } from "sonner";
+// import { useMediaQuery } from "@/hooks/useMediaQuery";
+// import { Label } from "../ui/label";
+// import { Switch } from "../ui/switch";
+// import { LLMVizTool } from "./tools/llm-visualizer"
 
-import { Textarea } from "@/components/ui/textarea";
+// import { Textarea } from "@/components/ui/textarea";
 
-// --- Interfaces and Components (StickyToBottomContent, ScrollToBottom, ToolDefinition) remain the same ---
-// (Keep existing StickyToBottomContent and ScrollToBottom components)
-function StickyToBottomContent(props: {
-  content: ReactNode;
-  footer?: ReactNode;
-  className?: string;
-  contentClassName?: string;
-}) {
-  const context = useStickToBottomContext();
-  return (
-    <div
-      ref={context.scrollRef}
-      style={{ width: "100%", height: "100%" }}
-      className={props.className}
-    >
-      <div ref={context.contentRef} className={props.contentClassName}>
-        {props.content}
-      </div>
+// // --- Interfaces and Components (StickyToBottomContent, ScrollToBottom, ToolDefinition) remain the same ---
+// // (Keep existing StickyToBottomContent and ScrollToBottom components)
+// function StickyToBottomContent(props: {
+//   content: ReactNode;
+//   footer?: ReactNode;
+//   className?: string;
+//   contentClassName?: string;
+// }) {
+//   const context = useStickToBottomContext();
+//   return (
+//     <div
+//       ref={context.scrollRef}
+//       style={{ width: "100%", height: "100%" }}
+//       className={props.className}
+//     >
+//       <div ref={context.contentRef} className={props.contentClassName}>
+//         {props.content}
+//       </div>
 
-      {props.footer}
-    </div>
-  );
-}
+//       {props.footer}
+//     </div>
+//   );
+// }
 
-function ScrollToBottom(props: { className?: string }) {
-  const { isAtBottom, scrollToBottom } = useStickToBottomContext();
+// function ScrollToBottom(props: { className?: string }) {
+//   const { isAtBottom, scrollToBottom } = useStickToBottomContext();
 
-  if (isAtBottom) return null;
-  return (
-    <Button
-      variant="outline"
-      className={props.className}
-      onClick={() => scrollToBottom()}
-    >
-      <ArrowDown className="w-4 h-4" />
-      <span>Scroll to bottom</span>
-    </Button>
-  );
-}
-interface ToolDefinition {
-  id: string;
-  name: string;
-  description?: string;
-  icon: React.ElementType;
-  component: React.FC<any>; // Use 'any' for simplicity or create a base ToolProps interface
-}
-// --- End Interfaces and Components ---
-
-
-// --- Placeholder Tool Components (Remain the same) ---
-const PlaceholderTool: React.FC<{ toolName: string }> = ({ toolName }) => (
-  <div className="flex flex-col items-center justify-center text-center text-muted-foreground flex-1 p-4 border border-dashed rounded-md">
-    <p className="font-semibold">{toolName}</p>
-    <p className="text-sm mt-1">Tool UI not implemented yet.</p>
-  </div>
-);
-const TokenAnalyzerTool: React.FC = () => <PlaceholderTool toolName="Token Analyzer" />;
-const PromptExplorerTool: React.FC = () => <PlaceholderTool toolName="Prompt Explorer" />;
-// --- End Placeholder Tool Components ---
+//   if (isAtBottom) return null;
+//   return (
+//     <Button
+//       variant="outline"
+//       className={props.className}
+//       onClick={() => scrollToBottom()}
+//     >
+//       <ArrowDown className="w-4 h-4" />
+//       <span>Scroll to bottom</span>
+//     </Button>
+//   );
+// }
+// interface ToolDefinition {
+//   id: string;
+//   name: string;
+//   description?: string;
+//   icon: React.ElementType;
+//   component: React.FC<any>; // Use 'any' for simplicity or create a base ToolProps interface
+// }
+// // --- End Interfaces and Components ---
 
 
-export function Thread() {
-  const [threadId, setThreadId] = useQueryParam("threadId", StringParam);
-  const [chatHistoryOpen, setChatHistoryOpen] = useQueryParam(
-    "chatHistoryOpen",
-    BooleanParam,
-  );
-  const [hideToolCalls, setHideToolCalls] = useQueryParam(
-    "hideToolCalls",
-    BooleanParam,
-  );
-  const [input, setInput] = useState("");
-  const [firstTokenReceived, setFirstTokenReceived] = useState(false);
-  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
-
-  // --- State for the LLM Visualization tool's controls (LIFTED HERE) ---
-  const modelOptions = ["gpt2", "bert-base-uncased", "llama-7b"]; // Keep options easily accessible if needed
-  const layerOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const headOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
-
-  const [llmVizModel, setLlmVizModel] = useState<string | undefined>(
-    modelOptions.length > 0 ? modelOptions[0] : undefined
-  );
-  const [llmVizLayer, setLlmVizLayer] = useState<string | undefined>(
-    layerOptions.length > 0 ? layerOptions[0] : undefined
-  );
-  const [llmVizHead, setLlmVizHead] = useState<string | undefined>(
-    headOptions.length > 0 ? headOptions[0] : undefined
-  );
-  const [llmVizControlText, setLlmVizControlText] = useState("The quick brown fox.");
-  // --- End LLM Viz State ---
-
-  // --- State for Tool Panel (Remains the same) ---
-  const [selectedToolId, setSelectedToolId] = useState<string | null>(null);
-  // --- END Tool Panel State ---
+// // --- Placeholder Tool Components (Remain the same) ---
+// const PlaceholderTool: React.FC<{ toolName: string }> = ({ toolName }) => (
+//   <div className="flex flex-col items-center justify-center text-center text-muted-foreground flex-1 p-4 border border-dashed rounded-md">
+//     <p className="font-semibold">{toolName}</p>
+//     <p className="text-sm mt-1">Tool UI not implemented yet.</p>
+//   </div>
+// );
+// const TokenAnalyzerTool: React.FC = () => <PlaceholderTool toolName="Token Analyzer" />;
+// const PromptExplorerTool: React.FC = () => <PlaceholderTool toolName="Prompt Explorer" />;
+// // --- End Placeholder Tool Components ---
 
 
-  const stream = useStreamContext();
-  const messages = stream.messages;
-  const isLoading = stream.isLoading; // Use stream's loading state directly
+// export function Thread() {
+//   const [threadId, setThreadId] = useQueryParam("threadId", StringParam);
+//   const [chatHistoryOpen, setChatHistoryOpen] = useQueryParam(
+//     "chatHistoryOpen",
+//     BooleanParam,
+//   );
+//   const [hideToolCalls, setHideToolCalls] = useQueryParam(
+//     "hideToolCalls",
+//     BooleanParam,
+//   );
+//   const [input, setInput] = useState("");
+//   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
+//   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
-  const lastError = useRef<string | undefined>(undefined);
+//   // --- State for the LLM Visualization tool's controls (LIFTED HERE) ---
+//   const modelOptions = ["gpt2", "bert-base-uncased", "llama-7b"]; // Keep options easily accessible if needed
+//   const layerOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
+//   const headOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
 
-  const historyPanelWidth = 300;
-  const toolsPanelWidth = 288;
+//   const [llmVizModel, setLlmVizModel] = useState<string | undefined>(
+//     modelOptions.length > 0 ? modelOptions[0] : undefined
+//   );
+//   const [llmVizLayer, setLlmVizLayer] = useState<string | undefined>(
+//     layerOptions.length > 0 ? layerOptions[0] : undefined
+//   );
+//   const [llmVizHead, setLlmVizHead] = useState<string | undefined>(
+//     headOptions.length > 0 ? headOptions[0] : undefined
+//   );
+//   const [llmVizControlText, setLlmVizControlText] = useState("The quick brown fox.");
+//   // --- End LLM Viz State ---
 
-  // --- useEffect hooks for error handling and first token (Remain the same) ---
-  useEffect(() => {
-    if (!stream.error) {
-      lastError.current = undefined;
-      return;
-    }
-    try {
-      const message = (stream.error as any).message;
-      if (!message || lastError.current === message) {
-        return;
-      }
-      lastError.current = message;
-      toast.error("An error occurred. Please try again.", {
-        description: (
-          <p>
-            <strong>Error:</strong> <code>{message}</code>
-          </p>
-        ),
-        richColors: true,
-        closeButton: true,
-      });
-    } catch {
-      // no-op
-    }
-  }, [stream.error]);
-
-  const prevMessageLength = useRef(0);
-  useEffect(() => {
-    if (
-      messages.length !== prevMessageLength.current &&
-      messages?.length &&
-      messages[messages.length - 1].type === "ai"
-    ) {
-      setFirstTokenReceived(true);
-    }
-    prevMessageLength.current = messages.length;
-  }, [messages]);
-  // --- End useEffect hooks ---
+//   // --- State for Tool Panel (Remains the same) ---
+//   const [selectedToolId, setSelectedToolId] = useState<string | null>(null);
+//   // --- END Tool Panel State ---
 
 
-  // *** START: Added useEffect for Auto Tool Selection ***
-  useEffect(() => {
-    if (!messages || messages.length === 0) {
-      return; // No messages to check
-    }
+//   const stream = useStreamContext();
+//   const messages = stream.messages;
+//   const isLoading = stream.isLoading; // Use stream's loading state directly
 
-    const lastMessage = messages[messages.length - 1];
+//   const lastError = useRef<string | undefined>(undefined);
 
-    // message.type === 'ai' &&
-    //         message.additional_kwargs &&
-    //         'token' in message.additional_kwargs
-    // Check if the last message is an AI message with the specific type in additional_kwargs
-    if (
-      lastMessage.type === "ai" &&
-      lastMessage.additional_kwargs &&
-      typeof lastMessage.additional_kwargs === 'object' && // Basic check it's an object
-      lastMessage.additional_kwargs.type === "llm_visualization" // Check the type from the backend message
-    ) {
-      // Auto-select the corresponding tool in the UI
-      // Use the ID defined in availableTools
-      setSelectedToolId('llm-visualization');
-    }
-    // No 'else' needed - we only want to *select* the tool when this specific message arrives,
-    // not deselect it otherwise. The user can manually change tools later.
+//   const historyPanelWidth = 300;
+//   const toolsPanelWidth = 288;
 
-  }, [messages, setSelectedToolId]); // Depend on messages array and the state setter
-  // *** END: Added useEffect for Auto Tool Selection ***
+//   // --- useEffect hooks for error handling and first token (Remain the same) ---
+//   useEffect(() => {
+//     if (!stream.error) {
+//       lastError.current = undefined;
+//       return;
+//     }
+//     try {
+//       const message = (stream.error as any).message;
+//       if (!message || lastError.current === message) {
+//         return;
+//       }
+//       lastError.current = message;
+//       toast.error("An error occurred. Please try again.", {
+//         description: (
+//           <p>
+//             <strong>Error:</strong> <code>{message}</code>
+//           </p>
+//         ),
+//         richColors: true,
+//         closeButton: true,
+//       });
+//     } catch {
+//       // no-op
+//     }
+//   }, [stream.error]);
 
-
-  // --- Handlers (handleSubmit, handleRegenerate remain the same) ---
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-    setFirstTokenReceived(false);
-
-    const newHumanMessage: Message = {
-      id: uuidv4(),
-      type: "human",
-      content: input,
-    };
-
-    const toolMessages = ensureToolCallsHaveResponses(stream.messages);
-    stream.submit(
-      { messages: [...toolMessages, newHumanMessage] },
-      {
-        streamMode: ["values"],
-        optimisticValues: (prev) => ({
-          ...prev,
-          messages: [
-            ...(prev?.messages ?? []), // Safe access
-            ...toolMessages,
-            newHumanMessage,
-          ],
-        }),
-      },
-    );
-
-    setInput("");
-  };
-
-  // REMOVE handleControlSubmit from Thread - it's now inside LLMVizTool
-
-  const handleRegenerate = (
-    parentCheckpoint: Checkpoint | null | undefined,
-  ) => {
-    if (!messages?.length) return; // Cannot regenerate if no messages
-    // Find the last AI message to regenerate from
-    const lastAiMessageIndex = messages.findLastIndex(m => m.type === 'ai');
-    if (lastAiMessageIndex === -1) return; // No AI message to regenerate
-
-    // Adjust message length count if needed (might depend on exact logic)
-    prevMessageLength.current = Math.max(0, prevMessageLength.current - 1);
-
-    setFirstTokenReceived(false);
-    stream.submit(undefined, {
-      checkpoint: parentCheckpoint, // Use the checkpoint passed from AssistantMessage
-      streamMode: ["values"],
-      // Optimistic update: Remove messages after the point of regeneration
-      // This might need adjustment based on how checkpoints relate to messages
-      optimisticValues: (prev) => ({
-        ...prev,
-        messages: prev?.messages?.slice(0, lastAiMessageIndex) ?? [],
-      }),
-    });
-  };
-  // --- End Handlers ---
+//   const prevMessageLength = useRef(0);
+//   useEffect(() => {
+//     if (
+//       messages.length !== prevMessageLength.current &&
+//       messages?.length &&
+//       messages[messages.length - 1].type === "ai"
+//     ) {
+//       setFirstTokenReceived(true);
+//     }
+//     prevMessageLength.current = messages.length;
+//   }, [messages]);
+//   // --- End useEffect hooks ---
 
 
-  const chatStarted = !!threadId || !!messages.length;
+//   // *** START: Added useEffect for Auto Tool Selection ***
+//   useEffect(() => {
+//     if (!messages || messages.length === 0) {
+//       return; // No messages to check
+//     }
 
-  // --- Define Available Tools (ensure LLMVizTool uses the correct props) ---
-  const availableTools: ToolDefinition[] = [
-    {
-      id: 'llm-visualization',
-      name: 'LLM Visualization',
-      description: 'Explore model layers and attention heads.',
-      icon: BrainCircuit,
-      // Component now expects the lifted state props
-      component: LLMVizTool, // LLMVizToolProps defined above
-    },
-    {
-      id: 'token-analyzer',
-      name: 'Token Analyzer',
-      description: 'See how text is tokenized.',
-      icon: ScanText,
-      component: TokenAnalyzerTool, // Doesn't need special props
-    },
-    {
-      id: 'prompt-explorer',
-      name: 'Prompt Explorer',
-      description: 'Experiment with different prompts.',
-      icon: Search,
-      component: PromptExplorerTool, // Doesn't need special props
-    },
-  ];
-  // --- End Define Available Tools ---
+//     const lastMessage = messages[messages.length - 1];
 
-  const SelectedToolDefinition = availableTools.find(tool => tool.id === selectedToolId);
-  const SelectedToolComponent = SelectedToolDefinition?.component; // Get the component function
+//     // message.type === 'ai' &&
+//     //         message.additional_kwargs &&
+//     //         'token' in message.additional_kwargs
+//     // Check if the last message is an AI message with the specific type in additional_kwargs
+//     if (
+//       lastMessage.type === "ai" &&
+//       lastMessage.additional_kwargs &&
+//       typeof lastMessage.additional_kwargs === 'object' && // Basic check it's an object
+//       lastMessage.additional_kwargs.type === "llm_visualization" // Check the type from the backend message
+//     ) {
+//       // Auto-select the corresponding tool in the UI
+//       // Use the ID defined in availableTools
+//       setSelectedToolId('llm-visualization');
+//     }
+//     // No 'else' needed - we only want to *select* the tool when this specific message arrives,
+//     // not deselect it otherwise. The user can manually change tools later.
+
+//   }, [messages, setSelectedToolId]); // Depend on messages array and the state setter
+//   // *** END: Added useEffect for Auto Tool Selection ***
 
 
-  return (
-    // Main flex container
-    <div className="flex w-full h-screen overflow-hidden">
+//   // --- Handlers (handleSubmit, handleRegenerate remain the same) ---
+//   const handleSubmit = (e: FormEvent) => {
+//     e.preventDefault();
+//     if (!input.trim() || isLoading) return;
+//     setFirstTokenReceived(false);
 
-      {/* --- History Panel (No change) --- */}
-      <div className="relative lg:flex hidden shrink-0">
-        <motion.div
-          className="absolute h-full border-r bg-white overflow-hidden z-30"
-          style={{ width: historyPanelWidth }}
-          animate={
-            isLargeScreen
-              ? { x: chatHistoryOpen ? 0 : -historyPanelWidth }
-              : { x: chatHistoryOpen ? 0 : -historyPanelWidth }
-          }
-          initial={{ x: -historyPanelWidth }}
-          transition={
-            isLargeScreen
-              ? { type: "spring", stiffness: 300, damping: 30 }
-              : { duration: 0 }
-          }
-        >
-          <div className="relative h-full" style={{ width: historyPanelWidth }}>
-            <ThreadHistory />
-          </div>
-        </motion.div>
-      </div>
-      {/* --- END History Panel --- */}
+//     const newHumanMessage: Message = {
+//       id: uuidv4(),
+//       type: "human",
+//       content: input,
+//     };
 
-      {/* --- Tools Panel (Modified to pass props) --- */}
-      <div className="w-72 p-4 border-r bg-gray-50 lg:flex hidden flex-col gap-4 shrink-0 h-full overflow-y-auto z-20">
-        {/* Header (No change needed) */}
-        <div className="flex items-center gap-2 pb-2 border-b mb-2">
-          {selectedToolId && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="-ml-2 h-8 w-8"
-              onClick={() => setSelectedToolId(null)}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          )}
-          <h2 className="text-lg font-semibold flex-1 truncate">
-            {SelectedToolDefinition ? SelectedToolDefinition.name : "Tools"}
-          </h2>
-        </div>
+//     const toolMessages = ensureToolCallsHaveResponses(stream.messages);
+//     stream.submit(
+//       { messages: [...toolMessages, newHumanMessage] },
+//       {
+//         streamMode: ["values"],
+//         optimisticValues: (prev) => ({
+//           ...prev,
+//           messages: [
+//             ...(prev?.messages ?? []), // Safe access
+//             ...toolMessages,
+//             newHumanMessage,
+//           ],
+//         }),
+//       },
+//     );
 
-        {/* Conditional Content: Tool List or Selected Tool UI */}
-        {!selectedToolId ? (
-          // Tool List View (No change needed)
-          <div className="flex flex-col gap-1">
-            {availableTools.map((tool) => (
-              <Button
-                key={tool.id}
-                variant="ghost"
-                className="w-full justify-start h-auto py-2 px-3 text-left flex items-center gap-3"
-                onClick={() => setSelectedToolId(tool.id)}
-              >
-                <tool.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <span className="font-medium text-sm truncate">{tool.name}</span>
-                  {tool.description && (
-                    <span className="text-xs text-muted-foreground truncate">
-                      {tool.description}
-                    </span>
-                  )}
-                </div>
-              </Button>
-            ))}
-          </div>
-        ) : SelectedToolComponent ? (
-          // --- Selected Tool View (PASS PROPS HERE) ---
-          <div className="flex flex-col flex-1 min-h-0">
-            {/* Conditionally pass props based on the selected tool */}
-            {selectedToolId === 'llm-visualization' ? (
-              <SelectedToolComponent // This IS LLMVizTool
-                // Pass required props for LLMVizTool
-                stream={stream}
-                setFirstTokenReceived={setFirstTokenReceived}
-                parentIsLoading={isLoading}
-                selectedModel={llmVizModel}
-                setSelectedModel={setLlmVizModel}
-                selectedLayer={llmVizLayer}
-                setSelectedLayer={setLlmVizLayer}
-                selectedHead={llmVizHead}
-                setSelectedHead={setLlmVizHead}
-                controlText={llmVizControlText}
-                setControlText={setLlmVizControlText}
-              />
-            ) : (
-              // Render other tools without the specific LLM viz props
-              <SelectedToolComponent /* Pass other generic props if needed */ />
-            )}
-          </div>
-        ) : (
-          // Fallback (No change needed)
-          <div className="text-red-500">Error: Tool component not found.</div>
-        )}
-      </div>
-      {/* --- END Tools Panel --- */}
+//     setInput("");
+//   };
+
+//   // REMOVE handleControlSubmit from Thread - it's now inside LLMVizTool
+
+//   const handleRegenerate = (
+//     parentCheckpoint: Checkpoint | null | undefined,
+//   ) => {
+//     if (!messages?.length) return; // Cannot regenerate if no messages
+//     // Find the last AI message to regenerate from
+//     const lastAiMessageIndex = messages.findLastIndex(m => m.type === 'ai');
+//     if (lastAiMessageIndex === -1) return; // No AI message to regenerate
+
+//     // Adjust message length count if needed (might depend on exact logic)
+//     prevMessageLength.current = Math.max(0, prevMessageLength.current - 1);
+
+//     setFirstTokenReceived(false);
+//     stream.submit(undefined, {
+//       checkpoint: parentCheckpoint, // Use the checkpoint passed from AssistantMessage
+//       streamMode: ["values"],
+//       // Optimistic update: Remove messages after the point of regeneration
+//       // This might need adjustment based on how checkpoints relate to messages
+//       optimisticValues: (prev) => ({
+//         ...prev,
+//         messages: prev?.messages?.slice(0, lastAiMessageIndex) ?? [],
+//       }),
+//     });
+//   };
+//   // --- End Handlers ---
 
 
-      {/* --- Chat Area (No functional change needed here, layout remains) --- */}
-      <motion.div
-        className={cn(
-          "flex-1 flex flex-col min-w-0 overflow-hidden relative",
-          !chatStarted && "grid-rows-[1fr]",
-        )}
-        layout={isLargeScreen}
-      // Animation logic for margin/width can remain if desired,
-      // but ensure it accounts for the tools panel width correctly.
-      // It might be simpler to remove if complex interactions arise.
-      >
-        {/* Chat Header / Controls (No functional change needed) */}
-        {!chatStarted && (
-          <div className="absolute top-0 left-0 w-full flex items-center justify-between gap-3 p-2 pl-4 z-10">
-            {(!chatHistoryOpen || !isLargeScreen) && (
-              <Button
-                className="hover:bg-gray-100"
-                variant="ghost"
-                onClick={() => setChatHistoryOpen((p) => !p)}
-              >
-                {chatHistoryOpen ? (
-                  <PanelRightClose className="size-5" />
-                ) : (
-                  <PanelRightOpen className="size-5" />
-                )}
-              </Button>
-            )}
-          </div>
-        )}
-        {chatStarted && (
-          <div className="flex items-center justify-between gap-3 p-2 pl-4 z-10 relative border-b">
-            <div className="flex items-center justify-start gap-2">
-              {(!chatHistoryOpen || !isLargeScreen) && (
-                <Button
-                  className="hover:bg-gray-100"
-                  variant="ghost"
-                  onClick={() => setChatHistoryOpen((p) => !p)}
-                  aria-label={chatHistoryOpen ? "Close history panel" : "Open history panel"}
-                >
-                  {chatHistoryOpen ? (
-                    <PanelRightClose className="size-5" />
-                  ) : (
-                    <PanelRightOpen className="size-5" />
-                  )}
-                </Button>
-              )}
-              <button
-                className="flex gap-2 items-center cursor-pointer"
-                onClick={() => setThreadId(null)}
-              >
-                <LangGraphLogoSVG width={32} height={32} />
-                <span className="text-xl font-semibold tracking-tight">
-                  Know Your LLM Chat
-                </span>
-              </button>
-            </div>
-            <TooltipIconButton
-              size="lg"
-              className="p-4 mr-2"
-              tooltip="New thread"
-              variant="ghost"
-              onClick={() => setThreadId(null)}
-            >
-              <SquarePen className="size-5" />
-            </TooltipIconButton>
-          </div>
-        )}
-        {/* --- END Chat Header --- */}
+//   const chatStarted = !!threadId || !!messages.length;
+
+//   // --- Define Available Tools (ensure LLMVizTool uses the correct props) ---
+//   const availableTools: ToolDefinition[] = [
+//     {
+//       id: 'llm-visualization',
+//       name: 'LLM Visualization',
+//       description: 'Explore model layers and attention heads.',
+//       icon: BrainCircuit,
+//       // Component now expects the lifted state props
+//       component: LLMVizTool, // LLMVizToolProps defined above
+//     },
+//     {
+//       id: 'token-analyzer',
+//       name: 'Token Analyzer',
+//       description: 'See how text is tokenized.',
+//       icon: ScanText,
+//       component: TokenAnalyzerTool, // Doesn't need special props
+//     },
+//     {
+//       id: 'prompt-explorer',
+//       name: 'Prompt Explorer',
+//       description: 'Experiment with different prompts.',
+//       icon: Search,
+//       component: PromptExplorerTool, // Doesn't need special props
+//     },
+//   ];
+//   // --- End Define Available Tools ---
+
+//   const SelectedToolDefinition = availableTools.find(tool => tool.id === selectedToolId);
+//   const SelectedToolComponent = SelectedToolDefinition?.component; // Get the component function
 
 
-        {/* --- Chat Messages Area (No functional change needed) --- */}
-        <StickToBottom className="relative flex-1 overflow-hidden">
-          <StickyToBottomContent
-            className={cn(
-              "absolute inset-0 overflow-y-scroll [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-transparent",
-              !chatStarted && "flex flex-col items-center justify-center",
-              chatStarted && "grid grid-rows-[1fr_auto]", // Ensure content area takes up space
-            )}
-            contentClassName="pt-8 pb-16 px-6 flex flex-col gap-4 w-full" // Use px-6 for padding
-            content={
-              <>
-                {!chatStarted && (
-                  <div className="text-center px-4">
-                    <div className="flex flex-col items-center gap-3 mb-8">
-                      <LangGraphLogoSVG className="flex-shrink-0 h-10 w-10" />
-                      <h1 className="text-2xl font-semibold tracking-tight">
-                        Know Your LLM Chat
-                      </h1>
-                    </div>
-                    <p className="text-muted-foreground">
-                      Use the controls in the Tools panel on the left,
-                      or start a conversation below.
-                    </p>
-                  </div>
-                )}
-                {/* Message rendering logic remains the same */}
+//   return (
+//     // Main flex container
+//     <div className="flex w-full h-screen overflow-hidden">
 
-                {messages
-                  .filter((m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX))
-                  .map((message, index) => {
-                    const uniqueKey = message.id || `${message.type}-${index}-${Date.now()}`; // Ensure unique key
-                    return message.type === "human" ? (
-                      <HumanMessage
-                        key={uniqueKey}
-                        message={message}
-                        isLoading={isLoading}
-                      />
-                    ) : (
-                      <AssistantMessage
-                        key={uniqueKey}
-                        message={message}
-                        isLoading={isLoading}
-                        handleRegenerate={handleRegenerate}
-                        hideToolCalls={hideToolCalls ?? false}
-                      />
-                    );
-                  })}
-                {isLoading && !firstTokenReceived && chatStarted && (
-                  <AssistantMessageLoading />
-                )}
-              </>
-            }
-            footer={
-              // Footer with input area remains the same
-              <div className="sticky flex flex-col items-center gap-2 bottom-0 px-4 pt-4 bg-gradient-to-t from-background via-background to-transparent">
-                <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2" />
-                <div className="bg-background border rounded-lg shadow-sm mb-4 w-full relative z-10 p-2 max-w-3xl mx-auto"> {/* Added max-width */}
-                  <form
-                    onSubmit={handleSubmit}
-                    className="flex flex-col gap-2"
-                  >
-                    <Textarea
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey && !e.metaKey) {
-                          e.preventDefault();
-                          handleSubmit(e);
-                        }
-                      }}
-                      placeholder="Or type a general message here..."
-                      className="p-2 border-none bg-transparent shadow-none ring-0 outline-none focus:outline-none focus:ring-0 resize-none text-sm"
-                      //  rows={1} // Let it grow naturally with min/max
-                      minRows={1}
-                      maxRows={6}
-                    />
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="render-tool-calls"
-                          checked={hideToolCalls ?? false}
-                          onCheckedChange={(checked) => setHideToolCalls(checked)} // Ensure proper boolean handling
-                          size="sm"
-                        />
-                        <Label
-                          htmlFor="render-tool-calls"
-                          className="text-xs text-gray-500"
-                        >
-                          Hide Tool Calls
-                        </Label>
-                      </div>
-                      {isLoading ? (
-                        <Button key="stop" onClick={() => stream.stop()} variant="secondary" size="sm">
-                          <LoaderCircle className="w-4 h-4 animate-spin mr-1" />
-                          Cancel
-                        </Button>
-                      ) : (
-                        <Button
-                          type="submit"
-                          size="sm"
-                          disabled={isLoading || !input.trim()}
-                        >
-                          Send
-                        </Button>
-                      )}
-                    </div>
-                  </form>
-                </div>
-              </div>
-            }
-          />
-        </StickToBottom>
-        {/* --- END Chat Messages Area --- */}
+//       {/* --- History Panel (No change) --- */}
+//       <div className="relative lg:flex hidden shrink-0">
+//         <motion.div
+//           className="absolute h-full border-r bg-white overflow-hidden z-30"
+//           style={{ width: historyPanelWidth }}
+//           animate={
+//             isLargeScreen
+//               ? { x: chatHistoryOpen ? 0 : -historyPanelWidth }
+//               : { x: chatHistoryOpen ? 0 : -historyPanelWidth }
+//           }
+//           initial={{ x: -historyPanelWidth }}
+//           transition={
+//             isLargeScreen
+//               ? { type: "spring", stiffness: 300, damping: 30 }
+//               : { duration: 0 }
+//           }
+//         >
+//           <div className="relative h-full" style={{ width: historyPanelWidth }}>
+//             <ThreadHistory />
+//           </div>
+//         </motion.div>
+//       </div>
+//       {/* --- END History Panel --- */}
 
-      </motion.div>
-      {/* --- END Chat Area --- */}
-    </div>
-  );
-}
+//       {/* --- Tools Panel (Modified to pass props) --- */}
+//       <div className="w-72 p-4 border-r bg-gray-50 lg:flex hidden flex-col gap-4 shrink-0 h-full overflow-y-auto z-20">
+//         {/* Header (No change needed) */}
+//         <div className="flex items-center gap-2 pb-2 border-b mb-2">
+//           {selectedToolId && (
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               className="-ml-2 h-8 w-8"
+//               onClick={() => setSelectedToolId(null)}
+//             >
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           )}
+//           <h2 className="text-lg font-semibold flex-1 truncate">
+//             {SelectedToolDefinition ? SelectedToolDefinition.name : "Tools"}
+//           </h2>
+//         </div>
+
+//         {/* Conditional Content: Tool List or Selected Tool UI */}
+//         {!selectedToolId ? (
+//           // Tool List View (No change needed)
+//           <div className="flex flex-col gap-1">
+//             {availableTools.map((tool) => (
+//               <Button
+//                 key={tool.id}
+//                 variant="ghost"
+//                 className="w-full justify-start h-auto py-2 px-3 text-left flex items-center gap-3"
+//                 onClick={() => setSelectedToolId(tool.id)}
+//               >
+//                 <tool.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+//                 <div className="flex flex-col flex-1 overflow-hidden">
+//                   <span className="font-medium text-sm truncate">{tool.name}</span>
+//                   {tool.description && (
+//                     <span className="text-xs text-muted-foreground truncate">
+//                       {tool.description}
+//                     </span>
+//                   )}
+//                 </div>
+//               </Button>
+//             ))}
+//           </div>
+//         ) : SelectedToolComponent ? (
+//           // --- Selected Tool View (PASS PROPS HERE) ---
+//           <div className="flex flex-col flex-1 min-h-0">
+//             {/* Conditionally pass props based on the selected tool */}
+//             {selectedToolId === 'llm-visualization' ? (
+//               <SelectedToolComponent // This IS LLMVizTool
+//                 // Pass required props for LLMVizTool
+//                 stream={stream}
+//                 setFirstTokenReceived={setFirstTokenReceived}
+//                 parentIsLoading={isLoading}
+//                 selectedModel={llmVizModel}
+//                 setSelectedModel={setLlmVizModel}
+//                 selectedLayer={llmVizLayer}
+//                 setSelectedLayer={setLlmVizLayer}
+//                 selectedHead={llmVizHead}
+//                 setSelectedHead={setLlmVizHead}
+//                 controlText={llmVizControlText}
+//                 setControlText={setLlmVizControlText}
+//               />
+//             ) : (
+//               // Render other tools without the specific LLM viz props
+//               <SelectedToolComponent /* Pass other generic props if needed */ />
+//             )}
+//           </div>
+//         ) : (
+//           // Fallback (No change needed)
+//           <div className="text-red-500">Error: Tool component not found.</div>
+//         )}
+//       </div>
+//       {/* --- END Tools Panel --- */}
+
+
+//       {/* --- Chat Area (No functional change needed here, layout remains) --- */}
+//       <motion.div
+//         className={cn(
+//           "flex-1 flex flex-col min-w-0 overflow-hidden relative",
+//           !chatStarted && "grid-rows-[1fr]",
+//         )}
+//         layout={isLargeScreen}
+//       // Animation logic for margin/width can remain if desired,
+//       // but ensure it accounts for the tools panel width correctly.
+//       // It might be simpler to remove if complex interactions arise.
+//       >
+//         {/* Chat Header / Controls (No functional change needed) */}
+//         {!chatStarted && (
+//           <div className="absolute top-0 left-0 w-full flex items-center justify-between gap-3 p-2 pl-4 z-10">
+//             {(!chatHistoryOpen || !isLargeScreen) && (
+//               <Button
+//                 className="hover:bg-gray-100"
+//                 variant="ghost"
+//                 onClick={() => setChatHistoryOpen((p) => !p)}
+//               >
+//                 {chatHistoryOpen ? (
+//                   <PanelRightClose className="size-5" />
+//                 ) : (
+//                   <PanelRightOpen className="size-5" />
+//                 )}
+//               </Button>
+//             )}
+//           </div>
+//         )}
+//         {chatStarted && (
+//           <div className="flex items-center justify-between gap-3 p-2 pl-4 z-10 relative border-b">
+//             <div className="flex items-center justify-start gap-2">
+//               {(!chatHistoryOpen || !isLargeScreen) && (
+//                 <Button
+//                   className="hover:bg-gray-100"
+//                   variant="ghost"
+//                   onClick={() => setChatHistoryOpen((p) => !p)}
+//                   aria-label={chatHistoryOpen ? "Close history panel" : "Open history panel"}
+//                 >
+//                   {chatHistoryOpen ? (
+//                     <PanelRightClose className="size-5" />
+//                   ) : (
+//                     <PanelRightOpen className="size-5" />
+//                   )}
+//                 </Button>
+//               )}
+//               <button
+//                 className="flex gap-2 items-center cursor-pointer"
+//                 onClick={() => setThreadId(null)}
+//               >
+//                 <LangGraphLogoSVG width={32} height={32} />
+//                 <span className="text-xl font-semibold tracking-tight">
+//                   Know Your LLM Chat
+//                 </span>
+//               </button>
+//             </div>
+//             <TooltipIconButton
+//               size="lg"
+//               className="p-4 mr-2"
+//               tooltip="New thread"
+//               variant="ghost"
+//               onClick={() => setThreadId(null)}
+//             >
+//               <SquarePen className="size-5" />
+//             </TooltipIconButton>
+//           </div>
+//         )}
+//         {/* --- END Chat Header --- */}
+
+
+//         {/* --- Chat Messages Area (No functional change needed) --- */}
+//         <StickToBottom className="relative flex-1 overflow-hidden">
+//           <StickyToBottomContent
+//             className={cn(
+//               "absolute inset-0 overflow-y-scroll [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-transparent",
+//               !chatStarted && "flex flex-col items-center justify-center",
+//               chatStarted && "grid grid-rows-[1fr_auto]", // Ensure content area takes up space
+//             )}
+//             contentClassName="pt-8 pb-16 px-6 flex flex-col gap-4 w-full" // Use px-6 for padding
+//             content={
+//               <>
+//                 {!chatStarted && (
+//                   <div className="text-center px-4">
+//                     <div className="flex flex-col items-center gap-3 mb-8">
+//                       <LangGraphLogoSVG className="flex-shrink-0 h-10 w-10" />
+//                       <h1 className="text-2xl font-semibold tracking-tight">
+//                         Know Your LLM Chat
+//                       </h1>
+//                     </div>
+//                     <p className="text-muted-foreground">
+//                       Use the controls in the Tools panel on the left,
+//                       or start a conversation below.
+//                     </p>
+//                   </div>
+//                 )}
+//                 {/* Message rendering logic remains the same */}
+
+//                 {messages
+//                   .filter((m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX))
+//                   .map((message, index) => {
+//                     const uniqueKey = message.id || `${message.type}-${index}-${Date.now()}`; // Ensure unique key
+//                     return message.type === "human" ? (
+//                       <HumanMessage
+//                         key={uniqueKey}
+//                         message={message}
+//                         isLoading={isLoading}
+//                       />
+//                     ) : (
+//                       <AssistantMessage
+//                         key={uniqueKey}
+//                         message={message}
+//                         isLoading={isLoading}
+//                         handleRegenerate={handleRegenerate}
+//                         hideToolCalls={hideToolCalls ?? false}
+//                       />
+//                     );
+//                   })}
+//                 {isLoading && !firstTokenReceived && chatStarted && (
+//                   <AssistantMessageLoading />
+//                 )}
+//               </>
+//             }
+//             footer={
+//               // Footer with input area remains the same
+//               <div className="sticky flex flex-col items-center gap-2 bottom-0 px-4 pt-4 bg-gradient-to-t from-background via-background to-transparent">
+//                 <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2" />
+//                 <div className="bg-background border rounded-lg shadow-sm mb-4 w-full relative z-10 p-2 max-w-3xl mx-auto"> {/* Added max-width */}
+//                   <form
+//                     onSubmit={handleSubmit}
+//                     className="flex flex-col gap-2"
+//                   >
+//                     <Textarea
+//                       value={input}
+//                       onChange={(e) => setInput(e.target.value)}
+//                       onKeyDown={(e) => {
+//                         if (e.key === "Enter" && !e.shiftKey && !e.metaKey) {
+//                           e.preventDefault();
+//                           handleSubmit(e);
+//                         }
+//                       }}
+//                       placeholder="Or type a general message here..."
+//                       className="p-2 border-none bg-transparent shadow-none ring-0 outline-none focus:outline-none focus:ring-0 resize-none text-sm"
+//                       //  rows={1} // Let it grow naturally with min/max
+//                       minRows={1}
+//                       maxRows={6}
+//                     />
+//                     <div className="flex items-center justify-between pt-1">
+//                       <div className="flex items-center space-x-2">
+//                         <Switch
+//                           id="render-tool-calls"
+//                           checked={hideToolCalls ?? false}
+//                           onCheckedChange={(checked) => setHideToolCalls(checked)} // Ensure proper boolean handling
+//                           size="sm"
+//                         />
+//                         <Label
+//                           htmlFor="render-tool-calls"
+//                           className="text-xs text-gray-500"
+//                         >
+//                           Hide Tool Calls
+//                         </Label>
+//                       </div>
+//                       {isLoading ? (
+//                         <Button key="stop" onClick={() => stream.stop()} variant="secondary" size="sm">
+//                           <LoaderCircle className="w-4 h-4 animate-spin mr-1" />
+//                           Cancel
+//                         </Button>
+//                       ) : (
+//                         <Button
+//                           type="submit"
+//                           size="sm"
+//                           disabled={isLoading || !input.trim()}
+//                         >
+//                           Send
+//                         </Button>
+//                       )}
+//                     </div>
+//                   </form>
+//                 </div>
+//               </div>
+//             }
+//           />
+//         </StickToBottom>
+//         {/* --- END Chat Messages Area --- */}
+
+//       </motion.div>
+//       {/* --- END Chat Area --- */}
+//     </div>
+//   );
+// }

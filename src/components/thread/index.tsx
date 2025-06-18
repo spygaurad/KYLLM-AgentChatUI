@@ -20,7 +20,7 @@ import {
   PanelRightClose,
   SquarePen,
   ArrowLeft,
-  Wrench,
+  // Wrench,
   BrainCircuit,
   ScanText,
   Search
@@ -140,7 +140,7 @@ export function Thread() {
   const lastError = useRef<string | undefined>(undefined);
 
   const historyPanelWidth = 300;
-  const toolsPanelWidth = 288;
+  // const toolsPanelWidth = 288;
 
   // --- useEffect hooks for error handling and first token (Remain the same) ---
   useEffect(() => {
@@ -518,7 +518,7 @@ export function Thread() {
                         message={message}
                         isLoading={isLoading}
                         handleRegenerate={handleRegenerate}
-                        hideToolCalls={hideToolCalls ?? false}
+                        // hideToolCalls={hideToolCalls ?? false}
                       />
                     );
                   })}
@@ -548,8 +548,8 @@ export function Thread() {
                       placeholder="Or type a general message here..."
                       className="p-2 border-none bg-transparent shadow-none ring-0 outline-none focus:outline-none focus:ring-0 resize-none text-sm"
                       //  rows={1} // Let it grow naturally with min/max
-                      minRows={1}
-                      maxRows={6}
+                      // minRows={1}
+                      // maxRows={6}
                     />
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex items-center space-x-2">
@@ -557,7 +557,7 @@ export function Thread() {
                           id="render-tool-calls"
                           checked={hideToolCalls ?? false}
                           onCheckedChange={(checked) => setHideToolCalls(checked)} // Ensure proper boolean handling
-                          size="sm"
+                          // size="sm"
                         />
                         <Label
                           htmlFor="render-tool-calls"

@@ -52,8 +52,8 @@ export const BertVizHeadViewTool: React.FC<BertVizHeadViewToolProps> = ({
 
     // Options remain the same
     const modelOptions = ["gpt2", "bert-base-uncased", "llama-7b"];
-    const layerOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
-    const headOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
+    // const layerOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
+    // const headOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
 
     const handleControlSubmit = () => {
         if (parentIsLoading) return;
