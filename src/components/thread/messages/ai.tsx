@@ -2,7 +2,6 @@ import { parsePartialJson } from "@langchain/core/output_parsers";
 import { useStreamContext } from "@/providers/Stream";
 import { AIMessage, Checkpoint, Message } from "@langchain/langgraph-sdk";
 import { getContentString } from "../utils";
-import CircuitsVisVisualizer from './circuit-vis-visualizer'; // Import the visualizer
 import { BranchSwitcher, CommandBar } from "./shared";
 import { MarkdownText } from "../markdown-text";
 import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
@@ -13,6 +12,14 @@ import { Fragment } from "react/jsx-runtime";
 import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
 import { ThreadView } from "../agent-inbox";
 import { BooleanParam, useQueryParam } from "use-query-params";
+
+// import HeadView from "./bertviz-headview";
+import BertHeadVisualizer from "../../../test/headview_test";
+import ModelVisualizationPage from "../../../test/modelview_test";
+import {AttentionDataObject} from './bertviz-headview';
+
+import CircuitsVisVisualizer from './circuit-vis-visualizer'; // Import the visualizer
+
 
 function CustomComponent({
   message,
@@ -132,6 +139,35 @@ export function AssistantMessage({
                 />
               </div>
             )}
+
+            {message.type === 'ai' &&
+            message.additional_kwargs &&
+            'token' in message.additional_kwargs &&
+            'bert_attention' in message.additional_kwargs &&
+            // Array.isArray(message.additional_kwargs.token) &&
+            // Array.isArray(message.additional_kwargs.attention) && 
+            (
+              // <div className="py-2  -translate-x-35 mx-auto">
+              <div className="py-2 translate-x-5 mx-auto"
+                style={{
+                  maxWidth: "750px", // Adjust as needed
+                  maxHeight: "850px", // Adjust as needed
+                  overflow: "scroll", // Scroll if content exceeds
+                }}
+              >
+
+                <BertHeadVisualizer
+                  additionalKwargs={{
+                    token: message.additional_kwargs.token as string[],
+                    bert_attention_dict: message.additional_kwargs.bert_attention as AttentionDataObject,
+                  }}
+                />
+              </div>
+            )}
+
+          {/* <div>
+          <ModelVisualizationPage></ModelVisualizationPage>
+          </div> */}
 
           {contentString.length > 0 && (
             <div className="py-1">
